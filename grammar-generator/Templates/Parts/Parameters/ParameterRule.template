@@ -1,0 +1,5 @@
+				'${Name}' 
+				{
+					_paramExpr = "";
+					_paramExpr += "${Name}";
+				} -> ${ModulePrefix}_type_${Name}()

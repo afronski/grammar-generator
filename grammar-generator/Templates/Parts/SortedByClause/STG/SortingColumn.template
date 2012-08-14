@@ -1,0 +1,1 @@
+${ModulePrefix}_sorting_column_${Name}() ::= << ${ColumnName} >>

@@ -1,0 +1,4 @@
+				'${Name}'				
+				{
+					SortingColumn = "${Name}";
+				}									-> ${ModulePrefix}_sorting_column_${Name}()

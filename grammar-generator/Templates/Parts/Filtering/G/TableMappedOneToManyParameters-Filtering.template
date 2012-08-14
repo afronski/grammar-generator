@@ -1,0 +1,9 @@
+				'${ModuleLongName}.' 	${ModulePrefix}_${PostFix}		
+				{
+					_paramExpr = _paramExpr.Insert(0, "${ModuleLongName}.");
+				} ->	{$$${ModulePrefix}_${PostFix}.st}
+|
+				'${ModuleShortName}.' 	${ModulePrefix}_${PostFix}		
+				{
+					_paramExpr = _paramExpr.Insert(0, "${ModuleShortName}.");
+				} ->	{$$${ModulePrefix}_${PostFix}.st}

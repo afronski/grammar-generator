@@ -1,0 +1,1 @@
+												{ "${ModuleShortName}.${Name}", "${N2MObjTableName}" }, { "${ModuleLongName}.${Name}", "${N2MObjTableName}" }

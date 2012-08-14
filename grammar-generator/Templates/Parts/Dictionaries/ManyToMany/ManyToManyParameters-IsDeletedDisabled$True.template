@@ -1,0 +1,1 @@
+												{ "${ModuleShortName}.${Name}", " HAVING (COUNT(IsDeleted) \% 2) = 1" }, { "${ModuleLongName}.${Name}", " HAVING (COUNT(IsDeleted) \% 2) = 1" }

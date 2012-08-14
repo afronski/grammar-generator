@@ -1,0 +1,101 @@
+{
+	"LastStateView" : "PeopleLastView",
+	"EverStateView" : "PeopleEverView",
+	"MainTable" : "Users",
+
+	"ModulePrefix" : "user",
+	"DefaultColumnsString" : "UserID, Name, Surname, Birthday, SuperPower",
+	
+	"PrimaryID" : "UserID",
+	"FtsID" : "ID",
+	
+	"ModuleShortName" : "u",
+	"ModuleLongName" : "user",
+
+	"StringParameters" :
+	{
+		"NameParam" : { "Name" : "name", "ColumnName" : "Name" },
+		"SurnameParam" : { "Name" : "surname", "ColumnName" : "Surname" }
+	},
+
+	"UserParameters" : 
+	{		
+	},	
+
+	"IntParameters" :
+	{
+		"UserID" : { "Name" : "id", "ColumnName" : "UserID" }
+	},
+
+	"BoolParameters" : 
+	{		
+	},	
+
+	"NormalDateParameters" :
+	{
+	},
+	
+	"PastDateParameters" :
+	{
+		"Birthdate" : { "Name" : "birthdate", "ColumnName" : "Birthday" }
+	},
+
+	"LongStringParameters" :
+	{		
+		"SuperPowerParam" : { "Name" : "super_power", "ColumnName" : "SuperPower" }
+	},
+
+	"MappedParameters" :
+	{
+		"CountryParam" : { "Name" : "country", "ColumnName" : "CountryName", "ColumnNameForID" : "CountryID" }
+	},	
+
+	"TextifyOneToManyParameters" :
+	{
+	},
+
+	"ConstOneToManyParameters" :
+	{
+	},		
+
+	"TableMappedOneToManyParameters" :
+	{
+		"GgParam" :
+		{
+			"Name" : "gg",
+			"ColumnName" : "Identificator",
+			"ColumnNameForID" : "Name",
+
+			"PrimaryCompareKey" : "UserID",
+			"FieldName" : "Identificator",
+			"ForeignKey" : "ID",
+			"TableName" : "Users",
+
+			"SecondTableName" : "vwUserCommunicatorsGg",
+			"SecondTablePrimaryKey" : "UserID",
+			"SecondTableForeignKey" : "ID",
+
+			"VisibleOff" : true,
+			"SortingOff" : true
+		}
+
+	},
+
+
+	"ManyToManyParameters" :
+	{
+		"Emails" :
+		{ 
+			"Name" : "email", 
+			"N2MTableName" : "Users2Emails", 
+			"N2MReplyID" : "UserID", 
+			"N2MObjTableName" : "Emails", 
+			"N2MObjID" : "EmailID", 
+			"ColumnName" : "Address", 
+			"ColumnNameForID" : "Address", 
+			"VisibleOff" : true, 
+			"SortingOff" : true,
+			"IsDeletedDisabled": false
+		}
+	}
+}

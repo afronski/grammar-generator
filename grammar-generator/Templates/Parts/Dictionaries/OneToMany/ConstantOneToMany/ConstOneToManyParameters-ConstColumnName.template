@@ -1,0 +1,1 @@
+												{ "${ModuleShortName}.${Name}", "${ConstColumnName}" }, { "${ModuleLongName}.${Name}", "${ConstColumnName}" }

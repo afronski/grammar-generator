@@ -1,0 +1,1 @@
+												{ "${ModuleShortName}.${Name}", "${IsDeleted}" }, { "${ModuleLongName}.${Name}", "${IsDeleted}" }

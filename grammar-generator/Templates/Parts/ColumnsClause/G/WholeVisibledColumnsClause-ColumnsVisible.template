@@ -1,0 +1,16 @@
+				'${ModulePrefix}_columns' '(' ${ModuleShortName} += ${ModulePrefix}_columnsvisible (':' b += valInt)? (',' ${ModuleShortName} += ${ModulePrefix}_columnsvisible (':' b += valInt)? )* ')'
+				{
+					if (list_b != null)
+					{
+						// Add columns widths.
+						_columnsWidths.Clear();
+						_columnsWidths.AddRange(list_b);
+					}
+
+					if (list_${ModuleShortName} != null)
+					{
+						// Add columns names.
+						_columnsNames.Clear();
+						_columnsNames.AddRange(list_${ModuleShortName});
+					}
+				}					-> columnsST(val = {$$${ModuleShortName}})

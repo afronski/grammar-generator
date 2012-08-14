@@ -1,0 +1,1 @@
+												{ "${ModuleShortName}.${Name}", "${FieldName}" }, { "${ModuleLongName}.${Name}", "${FieldName}" }

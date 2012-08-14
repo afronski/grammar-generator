@@ -1,0 +1,4 @@
+				'${Name}'
+				{ 
+					throw new ArgumentException("Column '${Name}' is not implemented!");
+				}																		-> ${ModulePrefix}_column_${Name}()

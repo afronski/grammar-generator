@@ -1,0 +1,1 @@
+${ModulePrefix}_type_${Name}() ::= << CAST(FLOOR(CAST(${ColumnName} AS float)) AS datetime) >>

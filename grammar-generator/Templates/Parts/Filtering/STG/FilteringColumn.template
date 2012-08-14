@@ -1,0 +1,1 @@
+${ModulePrefix}_type_${Name}() ::= << ${ColumnName} >>

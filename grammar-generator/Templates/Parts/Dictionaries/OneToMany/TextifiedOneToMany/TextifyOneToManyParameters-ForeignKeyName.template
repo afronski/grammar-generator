@@ -1,0 +1,1 @@
+												{ "${ModuleShortName}.${Name}", "${ForeignKey}" }, { "${ModuleLongName}.${Name}", "${ForeignKey}" }
