@@ -1,0 +1,360 @@
+group FiltersLanguageGrammar;
+
+startSQL(expr, pagenum, pagesize) ::= <<
+DECLARE @PageNum AS INT;
+DECLARE @PageSize AS INT;
+SET @PageNum = <pagenum>;
+SET @PageSize = <pagesize>;
+
+<expr>
+>>
+
+builtSQL(val) ::= <<
+
+WITH BuiltQuery AS
+(
+	<val; separator=" ">
+)
+
+SELECT * 
+	FROM BuiltQuery
+WHERE RowNum BETWEEN (@PageNum - 1) * @PageSize + 1 AND @PageNum * @PageSize;
+>>
+
+countbuiltSQL(val) ::=	<<
+
+WITH BuiltQuery AS
+(
+	<val; separator=" ">
+)
+
+SELECT COUNT(*) FROM BuiltQuery;
+>>
+
+parameter(p, o, v) ::= "<p> <o> <v>"
+
+multiparameter(p, o, v) ::= << <p> <o> ( <v; separator=","> ) >>
+
+or(left, right) ::= "<left> OR <right>"
+
+and(left, right) ::= "<left> AND <right>"
+
+not(left) ::= "NOT <left>"
+
+parenthesis(val) ::= << ( <val; separator=","> ) >>
+
+intvalue(value) ::= << <value; separator=","> >>
+longstrvalue(value) ::= << N'%<value; separator=",">%' >>
+strvalue(value)	::= << <value; separator=","> >>
+datevalue(value) ::= << '<value; separator=",">' >>
+datespanvalue(start, end) ::= << N'<start; separator=",">' AND N'<end; separator=",">' >>
+othervalue(value) ::= << <value; separator=","> >>
+
+contains_val(val) ::= << N'%<val; separator=",">%' >>
+starts_with_val(val) ::= << N'<val; separator=",">%' >>
+ends_with_val(val) ::= << N'%<val; separator=",">' >>
+does_not_contains_val(val) ::= << N'%<val; separator=",">%' >>
+
+fts_val(val) ::= <<"<val; separator=" ">">>
+
+columnsST(val) ::= << <val; separator=","> >>
+
+sortingST(col, dir) ::= << <col; separator=","> <dir> >>
+
+like() ::= "LIKE"
+notlike() ::= "NOT LIKE"
+equals() ::= "="
+greater() ::= "\>"
+less() ::= "\<"
+greaterequal() ::= "\>="
+lessequal() ::= "\<="
+notequal() ::= "!="
+
+true_bit() ::= "1"
+false_bit() ::= "0"
+
+between() ::= "BETWEEN"
+notbetween() ::= "NOT BETWEEN"
+
+in() ::= "IN"
+
+ascending() ::= "ASC"
+descending() ::= "DESC"
+
+fts_param(val, maintable, primid, ftsid) ::= << <primid> IN (SELECT <ftsid> FROM <maintable> WHERE CONTAINS (*, N'<val>')) >>
+wasever(col, val, view, primid) ::= << <primid> IN (SELECT <primid> FROM <view> WHERE <col> IN ( <val; separator=","> )) >>
+
+textify_one_to_many(val, op, primid, foreignKey, tableName, filteredFieldName, isDeleted) ::= <<
+<primid> IN (	SELECT <foreignKey> FROM <tableName>
+				WHERE <filteredFieldName> <op> <val> AND <isDeleted> = 0)
+>>
+
+textify_one_to_many_not(val, primid, foreignKey, tableName, filteredFieldName, isDeleted) ::= <<
+NOT <primid> IN (	SELECT <foreignKey> FROM <tableName>
+					WHERE <filteredFieldName> = <val> AND <isDeleted> = 0)
+>>
+
+const_one_to_many(val, op, primid, foreignKey, tableName, filteredFieldName, isDeleted, constColumnName, constIntValue) ::= <<
+<primid> IN (	SELECT <foreignKey> FROM <tableName>
+				WHERE <filteredFieldName> <op> <val> AND <constColumnName> = <constIntValue> AND <isDeleted> = 0)
+>>
+
+const_one_to_many_not(val, primid, foreignKey, tableName, filteredFieldName, isDeleted, constColumnName, constIntValue) ::= <<
+NOT <primid> IN (	SELECT <foreignKey> FROM <tableName>
+					WHERE <filteredFieldName> = <val> AND <constColumnName> = <constIntValue> AND <isDeleted> = 0)
+>>
+
+table_mapped_one_to_many(val, op, primid, foreignKey, tableName, filteredFieldName, secondTableName, secondTablePK, secondTableFK) ::= <<
+<primid> IN ( SELECT <tableName>.<foreignKey> FROM <tableName> LEFT OUTER JOIN <secondTableName> AS n2m ON n2m.<secondTablePK> = <tableName>.<secondTableFK>
+			WHERE n2m.<filteredFieldName> <op> <val>)
+>>
+
+table_mapped_one_to_many_not(val, primid, foreignKey, tableName, filteredFieldName, secondTableName, secondTablePK, secondTableFK) ::= <<
+NOT <primid> IN ( SELECT <tableName>.<foreignKey> FROM <tableName> LEFT OUTER JOIN <secondTableName> AS n2m ON n2m.<secondTablePK> = <tableName>.<secondTableFK>
+				  WHERE n2m.<filteredFieldName> = <val>)
+>>
+
+many_to_many(val, op, maintable, primid, n2mtable, replyid, objtable, n2mobjid, valname, isdeletedrestriction) ::= <<
+<primid> IN (select Joiner.<primid>
+				from <n2mtable> as Joiner
+					left outer join <objtable> as NM on Joiner.<n2mobjid> = NM.ID
+			 where	NM.<valname> <op> <val> AND 
+					Joiner.<n2mobjid> IN 
+					(
+						SELECT <n2mobjid> FROM 
+							(SELECT <n2mobjid>, IsDeleted FROM <n2mtable> where <primid> = Joiner.<primid>) As PrefilteredNM
+						GROUP BY <n2mobjid> <isdeletedrestriction>
+					)
+			)
+>>
+
+many_to_many_not_contains(val, maintable, primid, n2mtable, replyid, objtable, n2mobjid, valname, isdeletedrestriction) ::= <<
+NOT <primid> IN (select Joiner.<primid>
+					from <n2mtable> as Joiner
+						left outer join <objtable> as NM on Joiner.<n2mobjid> = NM.ID
+				 where	NM.<valname> LIKE <val> AND 
+						Joiner.<n2mobjid> IN 
+						(
+							SELECT <n2mobjid> FROM 
+								(SELECT <n2mobjid>, IsDeleted FROM <n2mtable> where <primid> = Joiner.<primid>) As PrefilteredNM
+							GROUP BY <n2mobjid> <isdeletedrestriction>
+						)
+				)
+>>
+
+many_to_many_not(val, maintable, primid, n2mtable, replyid, objtable, n2mobjid, valname, isdeletedrestriction) ::= <<
+NOT <primid> IN (select Joiner.<primid>
+					from <n2mtable> as Joiner
+						left outer join <objtable> as NM on Joiner.<n2mobjid> = NM.ID
+				 where	NM.<valname> = <val> AND 
+						Joiner.<n2mobjid> IN 
+						(
+							SELECT <n2mobjid> FROM 
+								(SELECT <n2mobjid>, IsDeleted FROM <n2mtable> where <primid> = Joiner.<primid>) As PrefilteredNM
+							GROUP BY <n2mobjid> <isdeletedrestriction>
+						)
+				)
+>>
+
+many_to_many_multi(val, op, maintable, primid, n2mtable, replyid, objtable, n2mobjid, valname, isdeletedrestriction) ::= <<
+<primid> IN (select Joiner.<primid>
+				from <n2mtable> as Joiner
+					left outer join <objtable> as NM on Joiner.<n2mobjid> = NM.ID
+				 where	NM.<valname> <op> ( <val; separator=","> ) AND 
+						Joiner.<n2mobjid> IN 
+						(
+							SELECT <n2mobjid> FROM 
+								(SELECT <n2mobjid>, IsDeleted FROM <n2mtable> where <primid> = Joiner.<primid>) As PrefilteredNM
+							GROUP BY <n2mobjid> <isdeletedrestriction>
+						)
+			)
+>>
+
+many_to_many_wasever(val, maintable, primid, n2mtable, replyid, objtable, n2mobjid, valname, isdeletedrestriction) ::= <<
+<primid> IN (select Joiner.<primid>
+				from <n2mtable> as Joiner
+					left outer join <objtable> as NM on Joiner.<n2mobjid> = NM.ID
+				where	NM.<valname> IN ( <val; separator=","> ) AND 
+					Joiner.<n2mobjid> IN 
+					(
+						SELECT <n2mobjid> FROM 
+							(SELECT <n2mobjid>, IsDeleted FROM <n2mtable> where <primid> = Joiner.<primid>) As PrefilteredNM
+						GROUP BY <n2mobjid> <isdeletedrestriction>
+					)
+			)
+>>
+
+defaultSQL(val, view, cols, primid) ::= <<
+WITH BuiltQuery AS
+(
+	SELECT ROW_NUMBER() OVER(ORDER BY <primid> DESC) AS RowNum, 
+		<cols>
+	FROM <view>
+		WHERE <val; separator=" ">
+)
+-- defaultSQL
+SELECT *
+	FROM BuiltQuery
+WHERE RowNum BETWEEN (@PageNum - 1) * @PageSize + 1 AND @PageNum * @PageSize;
+>>
+
+countdefaultSQL(val, view, cols, primid) ::= <<
+WITH BuiltQuery AS
+(
+	SELECT ROW_NUMBER() OVER(ORDER BY <primid> DESC) AS RowNum,
+		<cols>
+	FROM <view>
+		WHERE <val; separator=" ">
+)
+-- countdefaultSQL
+SELECT COUNT(*) FROM BuiltQuery;
+>>
+
+specified(val, col, sort, view) ::= <<
+WITH BuiltQuery AS
+(
+	SELECT ROW_NUMBER() OVER(ORDER BY <sort; separator=",">) AS RowNum,
+		<col; separator=",">
+	FROM <view>
+		WHERE <val; separator=" ">
+)
+-- specified
+SELECT *
+	FROM BuiltQuery
+WHERE RowNum BETWEEN (@PageNum - 1) * @PageSize + 1 AND @PageNum * @PageSize;
+>>
+
+countspecified(val, col, sort, view) ::= <<
+WITH BuiltQuery AS
+(
+	SELECT ROW_NUMBER() OVER(ORDER BY <sort; separator=",">) AS RowNum,
+		<col; separator=",">
+	FROM <view>
+		WHERE <val; separator=" ">
+)
+-- countspecified
+SELECT COUNT(*) FROM BuiltQuery;
+>>
+
+specifiedColumns(val, col, view, primid) ::= <<
+WITH BuiltQuery AS
+(
+	SELECT ROW_NUMBER() OVER(ORDER BY <primid> DESC) AS RowNum,
+		<col; separator=",">
+	FROM <view>
+		WHERE <val; separator=" ">
+)
+-- specifiedColumns
+SELECT *
+	FROM BuiltQuery
+WHERE RowNum BETWEEN (@PageNum - 1) * @PageSize + 1 AND @PageNum * @PageSize;
+>>
+
+countspecifiedColumns(val, col, view, primid) ::= <<
+WITH BuiltQuery AS
+(
+	SELECT ROW_NUMBER() OVER(ORDER BY <primid> DESC) AS RowNum,
+		<col; separator=",">
+	FROM <view>
+		WHERE <val; separator=" ">
+)		
+-- countspecifiedColumns
+SELECT COUNT(*) FROM BuiltQuery;
+>>
+
+specifiedSorting(val, sort, view, cols) ::= <<
+WITH BuiltQuery AS
+(
+	SELECT ROW_NUMBER() OVER(ORDER BY <sort; separator=",">) AS RowNum,
+		<cols>
+	FROM <view>
+		WHERE <val; separator=",">
+)
+-- specifiedSorting
+SELECT *
+	FROM BuiltQuery
+WHERE RowNum BETWEEN (@PageNum - 1) * @PageSize + 1 AND @PageNum * @PageSize;
+>>
+
+countspecifiedSorting(val, sort, view, cols) ::= <<
+WITH BuiltQuery AS
+(
+	SELECT ROW_NUMBER() OVER(ORDER BY <sort; separator=",">) AS RowNum,
+		<cols>
+	FROM <view>
+		WHERE <val; separator=",">
+)
+-- countspecifiedSorting
+SELECT COUNT(*) FROM BuiltQuery;
+>>
+
+countspecifiedSorting_library(val, sort, view, cols) ::= <<
+WITH BuiltQuery AS
+(
+	SELECT ID, ROW_NUMBER() OVER(ORDER BY <sort; separator=",">) AS RowNumber
+	FROM <view>
+		WHERE <val; separator=",">
+)
+-- countspecifiedSorting
+SELECT COUNT(DISTINCT ID) FROM BuiltQuery;
+>>
+
+countspecifiedColumns_library(val, col, view, primid) ::= <<
+WITH BuiltQuery AS
+(
+	SELECT ID, ROW_NUMBER() OVER(ORDER BY <primid> DESC) AS RowNumber
+	FROM <view>
+		WHERE <val; separator=" ">
+)		
+-- countspecifiedColumns
+SELECT COUNT(DISTINCT ID) FROM BuiltQuery;
+>>
+
+countspecified_library(val, col, sort, view) ::= <<
+WITH BuiltQuery AS
+(
+	SELECT ID, ROW_NUMBER() OVER(ORDER BY <sort; separator=",">) AS RowNumber
+	FROM <view>
+		WHERE <val; separator=" ">
+)
+-- countspecified
+SELECT COUNT(DISTINCT ID) FROM BuiltQuery;
+>>
+
+countdefaultSQL_library(val, view, cols, primid) ::= <<
+WITH BuiltQuery AS
+(
+	SELECT ID, ROW_NUMBER() OVER(ORDER BY <primid> DESC) AS RowNumber
+	FROM <view>
+		WHERE <val; separator=" ">
+)
+-- countdefaultSQL
+SELECT COUNT(DISTINCT ID) FROM BuiltQuery;
+>>
+
+user_column_gg() ::= << Identificator, Name >>
+user_column_super_power() ::= << SuperPower >>
+user_column_name() ::= << Name >>
+user_column_surname() ::= << Surname >>
+user_column_birthdate() ::= << Birthday >>
+user_column_country() ::= << CountryName, CountryID >>
+user_column_id() ::= << UserID >>
+user_column_email() ::= << Address, Address >>
+
+user_sorting_column_gg() ::= << Identificator >>
+user_sorting_column_super_power() ::= << SuperPower >>
+user_sorting_column_name() ::= << Name >>
+user_sorting_column_surname() ::= << Surname >>
+user_sorting_column_birthdate() ::= << Birthday >>
+user_sorting_column_country() ::= << CountryName >>
+user_sorting_column_id() ::= << UserID >>
+user_sorting_column_email() ::= << Address >>
+
+user_type_gg() ::= << Identificator >>
+user_type_super_power() ::= << SuperPower >>
+user_type_name() ::= << Name >>
+user_type_surname() ::= << Surname >>
+user_type_birthdate() ::= << CAST(FLOOR(CAST(Birthday AS float)) AS datetime) >>
+user_type_country() ::= << CountryName >>
+user_type_id() ::= << UserID >>
+user_type_email() ::= << Address >>
