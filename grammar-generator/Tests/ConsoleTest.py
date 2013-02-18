@@ -1,6 +1,7 @@
 import unittest
 from CLI.Console import Console
 
+
 # Mocked STDOUT output.
 class MockedConsole:
     def __init__(self):
@@ -42,7 +43,7 @@ class TestClass(unittest.TestCase):
         assert self.outputter.output.getLastPrintedMessage() == value, "You can't print separator line."
 
     def test_which_checks_printing_headers(self):
-        self.outputter.writeStartHeader()        
+        self.outputter.writeStartHeader()
         assert self.outputter.output.getLastPrintedMessage().find("Name") != -1, "You can't print start header."
 
         self.outputter.writeEndHeader()
